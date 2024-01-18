@@ -8,36 +8,50 @@ declare let window: any;
   providedIn: 'root',
 })
 export class Web3Service {
-  private web3: Web3;
-  private counterContract: any;
+  private web3!: Web3;
+  private counterContract!: any; // Using non-null assertion
   private contractABI = CounterContract.abi;
-  private blockchainUrl = 'http://127.0.0.1:8545';
+  private blockchainUrl = 'http://127.0.0.1:9545';
 
   constructor() {
-    if (window.ethereum) {
-      this.web3 = new Web3(window.ethereum);
-      window.ethereum.enable().catch((error: any) => {
-        // User denied account access
-        console.error('User denied account access');
-      });
-    } else {
-      // If MetaMask is not available, use a local provider (Ganache)
-      // Instead of this:
-      // this.web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:7545'));
-
-      // Use this:
-      this.web3 = new Web3(new Web3.providers.HttpProvider(this.blockchainUrl));
-    }
-    this.loadContract();
+    this.initWeb3();
   }
 
-  async loadContract() {
+  private async initWeb3() {
+    try {
+      if (window.ethereum) {
+        this.web3 = new Web3(window.ethereum);
+        await window.ethereum.enable();
+      } else {
+        this.web3 = new Web3(
+          new Web3.providers.HttpProvider(this.blockchainUrl)
+        );
+      }
+      await this.initContract();
+    } catch (error) {
+      console.error('Error initializing web3:', error);
+    }
+  }
+
+  private async initContract() {
     try {
       const networkId = await this.web3.eth.net.getId();
-      const networkIdString = networkId.toString(); // Convert to string
-      const deployedNetwork = (CounterContract.networks as Record<string, any>)[
-        networkIdString
-      ]; // Type assertion
+      const networkIdString = networkId.toString();
+
+      // Define a type for the network object
+      type NetworkType = {
+        [key: string]: {
+          events: any;
+          links: any;
+          address: string;
+          transactionHash: string;
+        };
+      };
+
+      // Use type assertion for CounterContract.networks
+      const networks = CounterContract.networks as NetworkType;
+
+      const deployedNetwork = networks[networkIdString];
       if (deployedNetwork) {
         this.counterContract = new this.web3.eth.Contract(
           this.contractABI,
@@ -50,24 +64,24 @@ export class Web3Service {
         );
       }
     } catch (error) {
-      console.error('Error loading contract:', error);
+      console.error('Error initializing contract:', error);
     }
   }
 
   async incrementCounter() {
-    await this.loadContract(); // Ensure contract is loaded
+    // Removed the loadContract call as the contract should already be initialized
     const accounts = await this.web3.eth.getAccounts();
     return this.counterContract.methods.increment().send({ from: accounts[0] });
   }
 
   async getCounterValue() {
-    await this.loadContract(); // Ensure contract is loaded
+    // Removed the loadContract call as the contract should already be initialized
     const value = await this.counterContract.methods.getCount().call();
     return parseInt(value, 10); // Parse the result as an integer
   }
 
   async decrementCounter() {
-    await this.loadContract(); // Ensure contract is loaded
+    // Removed the loadContract call as the contract should already be initialized
     const accounts = await this.web3.eth.getAccounts();
     return this.counterContract.methods.decrement().send({ from: accounts[0] });
   }
