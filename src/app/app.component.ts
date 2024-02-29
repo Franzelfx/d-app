@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { Web3Service } from './web3.service';
 
 @Component({
   selector: 'app-component',
@@ -7,32 +6,19 @@ import { Web3Service } from './web3.service';
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent {
-  counterValue: number; // Property to store the counter value
+  counterValue: number = 0; // Initialize directly for simplicity
 
-  constructor(private web3Service: Web3Service) {
-    this.counterValue = 0; // Initialize the counter value
+  constructor() {}
+
+  increment() {
+    this.counterValue += 1;
+    console.log(`Counter incremented to: ${this.counterValue}`);
+    // Simulate updating and fetching from the blockchain
   }
 
-  async ngOnInit() {
-    // Load the initial counter value from the blockchain when the component initializes
-    await this.loadCounterValue();
-  }
-
-  async loadCounterValue() {
-    // Fetch the counter value from the blockchain
-    const value = await this.web3Service.getCounterValue();
-    this.counterValue = value; // Update the counterValue property
-  }
-
-  async increment() {
-    await this.web3Service.incrementCounter();
-    // After incrementing, reload the counter value from the blockchain
-    await this.loadCounterValue();
-  }
-
-  async decrement() {
-    await this.web3Service.decrementCounter();
-    // After decrementing, reload the counter value from the blockchain
-    await this.loadCounterValue();
+  decrement() {
+    this.counterValue -= 1;
+    console.log(`Counter decremented to: ${this.counterValue}`);
+    // Simulate updating and fetching from the blockchain
   }
 }

@@ -4,6 +4,7 @@ import CounterContract from '../../build/contracts/Counter.json';
 
 declare let window: any;
 
+
 @Injectable({
   providedIn: 'root',
 })
